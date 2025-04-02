@@ -15,11 +15,55 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would handle the signup process here
-    router.push("/login");
+    setError("");
+    
+    // Basic form validation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Call the signup API endpoint
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          username, 
+          email, 
+          password 
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Redirect to login page on successful signup
+        router.push("/login");
+      } else {
+        // Display error message
+        setError(data.message || "Failed to create account");
+      }
+    } catch (err) {
+      setError("An error occurred during signup");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -37,6 +81,11 @@ export default function Signup() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
+            {error && (
+              <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input 
@@ -85,8 +134,8 @@ export default function Signup() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
         </CardContent>

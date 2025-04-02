@@ -10,10 +10,16 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription} from "@/comp
 import { OverviewCard } from "@/ui/dashboard/overview-card";
 import { TableCard } from "@/ui/dashboard/table-card";
 import { ModeToggle } from "./mode-toggle";
+import { UserProfileMenu } from "@/components/user-profile-menu";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center px-12 py-6">
+      {/* Fixed positioned theme toggle at bottom right */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <ModeToggle />
+      </div>
+      
       <Tabs defaultValue="connect" className="h-full space-y-6">
         <div className="flex justify-center">
           <TabsList>
@@ -29,7 +35,7 @@ export default function Home() {
             <TabsTrigger value="results">Results</TabsTrigger>
           </TabsList>
           <div className="absolute right-5">
-            <ModeToggle/>
+            <UserProfileMenu username="Admin" />
           </div>
         </div>
         <TabsContent

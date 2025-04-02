@@ -8,15 +8,45 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ModeToggle } from "../dashboard/mode-toggle";
+import { validateUser } from "@/lib/user-service";
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin-pwd");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/dashboard");
+    setError("");
+    setIsLoading(true);
+    
+    try {
+      // Call an API route that will validate the user
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Successful login
+        router.push("/dashboard");
+      } else {
+        // Failed login
+        setError(data.message || "Invalid username or password");
+      }
+    } catch (err) {
+      setError("An error occurred during login");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,6 +64,11 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input 
@@ -43,6 +78,7 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)} 
                 placeholder="Username"
                 className="w-full"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -54,6 +90,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)} 
                 placeholder="Password"
                 className="w-full"
+                required
               />
             </div>
             <div className="text-sm text-right">
@@ -61,14 +98,14 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <p className="text-sm text-muted-foreground">
-            Demo credentials are pre-filled for testing
+            Default admin: username "admin", password "admin-pwd"
           </p>
           <div className="text-sm">
             Don't have an account?{" "}
